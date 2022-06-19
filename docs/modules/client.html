@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Tables">Tables</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>client</strong></li>
+  <li><a href="../modules/common.html">common</a></li>
+  <li><a href="../modules/ecc.html">ecc</a></li>
+  <li><a href="../modules/server.html">server</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>client</code></h1>
+<p>Client Module</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#api:keyExchange">api:keyExchange ()</a></td>
+	<td class="summary">Perform the key exchange, called automatically</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#api.generateUUID">api.generateUUID ()</a></td>
+	<td class="summary">Generate a UUID.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#api:sendReq">api:sendReq (message)</a></td>
+	<td class="summary">Send a message to the host server and get a reply</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#api.new">api.new (protocol)</a></td>
+	<td class="summary">Create a new client object.</td>
+	</tr>
+</table>
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#api">api</a></td>
+	<td class="summary">Default settings</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "api:keyExchange"></a>
+    <strong>api:keyExchange ()</strong>
+    </dt>
+    <dd>
+    Perform the key exchange, called automatically
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        true or throws an error
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "api.generateUUID"></a>
+    <strong>api.generateUUID ()</strong>
+    </dt>
+    <dd>
+    Generate a UUID.
+ https://gist.github.com/jrus/3197011
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        uuid
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "api:sendReq"></a>
+    <strong>api:sendReq (message)</strong>
+    </dt>
+    <dd>
+    Send a message to the host server and get a reply
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">message</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">bool</span></span>
+        false</li>
+        <li>
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        error</li>
+    </ol>
+     <h3>Or</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">bool</span></span>
+        true</li>
+        <li>
+           <span class="types"><span class="type">any</span></span>
+        Response</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "api.new"></a>
+    <strong>api.new (protocol)</strong>
+    </dt>
+    <dd>
+    Create a new client object.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">protocol</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        Client object
+    </ol>
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "api"></a>
+    <strong>api</strong>
+    </dt>
+    <dd>
+    Default settings
+
+
+    <h3>Fields:</h3>
+    <ul>
+        <li><span class="parameter">timeout</span>
+        How long to wait before declaring a message as timing out
+        </li>
+        <li><span class="parameter">maxKeyAge</span>
+        How long to allow keys to last
+        </li>
+        <li><span class="parameter">onKeyExchange</span>
+        Function called after keys are exchanged for whatever reason, you can place an authorization function in here i.e. for password/account login persistance
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2022-06-18 22:50:03 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
