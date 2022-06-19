@@ -61,17 +61,11 @@ end
 function api:sendEncryptedMessage(id, message)
   expect(1, id, "number")
   expect(2, message, "table")
+  message.uuid = common.generateUUID()
   if self:verifyAge(id) then
     local encryptedMessage = ecc.encrypt(textutils.serialize(message), self.activeConnections[id])
     self:sendMessage(id, common.messageTypes.encrypted, encryptedMessage)
     return true
-  end
-  return false
-end
-
-local function valueInTable(T, value)
-  for k,v in pairs(T) do
-    if v == value then return true end
   end
   return false
 end
@@ -110,7 +104,7 @@ function api:start()
             -- Ensure that this message's uuid is different, if not then this message may be a replay attack. So invalidate the connection and force a new keypair generation.
             local currentTime = os.epoch("utc")
             local messageTooOld = (decryptT.epoch == nil) or (decryptT.epoch + self.maxMessageAge < currentTime)
-            local uuidAlreadySeen = valueInTable(self.activeConnections[id].uuids, decryptT.uuid) or (decryptT.uuid == nil)
+            local uuidAlreadySeen = common.valueInTable(self.activeConnections[id].uuids, decryptT.uuid) or (decryptT.uuid == nil)
             if type(decryptT.epoch)=="number" then print(string.format("  Message is %ums old", currentTime - decryptT.epoch)) end
             if messageTooOld or uuidAlreadySeen then
               -- This uuid has already been sent in a message, or this message doesn't contain a uuid

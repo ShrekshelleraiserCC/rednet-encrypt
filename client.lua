@@ -41,6 +41,7 @@ function api:keyExchange()
         if self.onKeyExchange then
           self:onKeyExchange()
         end
+        self.uuids = {} -- reset uuid cache
         return true
         -- If this fails then we assume that the response type was incorrect, so we wait for the correct response type
       end
@@ -60,20 +61,11 @@ function api:_checkKeyAge()
   end
 end
 
---- Generate a UUID.
--- https://gist.github.com/jrus/3197011
--- @treturn string uuid
-function api.generateUUID()
-  local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-  return string.gsub(template, '[xy]', function(c)
-    local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
-    return string.format('%x', v)
-  end)
-end
+
 
 function api:_sendEncryptedMessage(message)
   expect(1, message, "table")
-  message.uuid = message.uuid or api.generateUUID()
+  message.uuid = message.uuid or common.generateUUID()
   message.epoch = os.epoch("utc")
   local serializedMessage = textutils.serialize(message)
   local encryptedMessage = ecc.encrypt(serializedMessage, self.common)
@@ -109,8 +101,9 @@ function api:sendReq(message)
       if ecc.verify(self.hostPublic, response.message, response.sig) then
         -- signiture is valid
         local status, decryptResponse = pcall(textutils.unserialize,string.char(unpack(ecc.decrypt(response.message, common))))
-        if status then
-          -- the message decrypted successfully to a serialized table
+        if status and decryptResponse.uuid and (not common.valueInTable(self.uuids, decryptResponse.uuid)) then
+          -- the message decrypted successfully to a serialized table, and the uuid is unique
+          self.uuids[#self.uuids+1] = decryptResponse.uuid
           return true, decryptResponse
         end
         -- key is invalid

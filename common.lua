@@ -3,6 +3,24 @@
 
 local api = {}
 
+--- Generate a UUID.
+-- https://gist.github.com/jrus/3197011
+-- @treturn string uuid
+function api.generateUUID()
+  local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+  return string.gsub(template, '[xy]', function(c)
+    local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+    return string.format('%x', v)
+  end)
+end
+
+function api.valueInTable(T, value)
+  for k,v in pairs(T) do
+    if v == value then return true end
+  end
+  return false
+end
+
 --- Error table
 -- @table error
 api.error = {
