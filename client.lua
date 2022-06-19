@@ -105,11 +105,15 @@ function api:sendReq(message)
           -- the message decrypted successfully to a serialized table, and the uuid is unique
           self.uuids[#self.uuids+1] = decryptResponse.uuid
           return true, decryptResponse
+        elseif status then
+          -- the message decrypted successfully, but the uuid is not unique
+          -- For now this message will just be ignored.
+        else
+          -- key is invalid
+          self:keyExchange()
+          errCount = errCount + 1
+          lastErrReason = common.error.key_failure
         end
-        -- key is invalid
-        self:keyExchange()
-        errCount = errCount + 1
-        lastErrReason = common.error.key_failure
       else
         errCount = errCount + 1
         lastErrReason = common.error.sig_invalid
