@@ -26,7 +26,7 @@ local server = require("server")
 local srv = server.new("encping", "testserver") -- Make a server object for protocol "encping" with hostname "testserver"
 
 local function handleMessage(self, id, msg) -- This is the message handler function, when the server recieves an encrypted message it'll pass it in here along with the rednet ID of the computer.
-  srv:sendEncryptedMessage(id, msg) -- Just send the message straight back
+  self:sendEncryptedMessage(id, msg) -- Just send the message straight back
 end
 
 srv.msgHandle = handleMessage -- Set our handleMessage function as the message handler for this server object
