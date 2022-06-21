@@ -61,7 +61,7 @@ end
 function api:sendEncryptedMessage(id, message)
   expect(1, id, "number")
   expect(2, message, "table")
-  message.uuid = common.generateUUID()
+  message.uuid = message.uuid or common.generateUUID()
   if self:verifyAge(id) then
     local encryptedMessage = ecc.encrypt(textutils.serialize(message), self.activeConnections[id])
     self:sendMessage(id, common.messageTypes.encrypted, encryptedMessage)
@@ -70,13 +70,30 @@ function api:sendEncryptedMessage(id, message)
   return false
 end
 
+local function getLengthOfArbritaryT(T)
+  local len = 0
+  for k,v in pairs(T) do
+    len = len + 1
+  end
+  return len
+end
+
 --- Start the server
 function api:start()
+  local width, height = term.getSize()
+  topBar = window.create(term.current(), 1, 1, width, 1)
+  topBar.setBackgroundColor(colors.blue)
+  topBar.setTextColor(colors.white)
+  bottomArea = window.create(term.current(), 1, 2, width, height-1)
+  term.redirect(bottomArea)
   print("Server started for "..self.protocol)
   while true do
-    local id, response, protocol = rednet.receive(self.protocol, self.timeout)
-    print(string.format("%u Message from %u",os.epoch("utc"), id))
+    topBar.setCursorPos(1,1)
+    topBar.clear()
+    topBar.write(string.format("%s@%s\127C%2u", self.protocol, self.hostname, getLengthOfArbritaryT(self.activeConnections)))
+    local id, response, protocol = rednet.receive(self.protocol, self.maxConnectionAge/1000)
     if protocol == self.protocol and type(response) == "table" then
+      print(string.format("%u Message from %u",os.epoch("utc"), id))
       if response.type == common.messageTypes.key_exchange then
         -- peform key exchange
         term.setTextColor(colors.lime)
@@ -128,7 +145,14 @@ function api:start()
               term.setTextColor(colors.green)
               print("  Valid message, passing to msgHandle")
               term.setTextColor(colors.white)
-              self:msgHandle(id, decryptT)
+              local err
+              status, err = pcall(self.msgHandle, self, id, decryptT)
+              if not status then
+                term.setTextColor(colors.red)
+                print("  !!msgHandle threw an error:")
+                print(err)
+                term.setTextColor(colors.white)
+              end
             end
           elseif signatureValid then
             -- The signiture is correct, but the decrypted message is not a deserializable string
@@ -146,6 +170,8 @@ function api:start()
           end
         end
       end
+    else
+      print("No messages recieved.. Clearing cache..")
     end
     -- Done processing request
     for k,v in pairs(self.activeConnections) do
@@ -165,6 +191,7 @@ function api.new(protocol, hostname)
   rednet.host(protocol, hostname)
   local o = {}
   o.protocol = protocol
+  o.hostname = hostname
   o.private, o.public = ecc.keypair()
   o.activeConnections = {} -- indexed by rednet ID
   -- Each entry will contain:
