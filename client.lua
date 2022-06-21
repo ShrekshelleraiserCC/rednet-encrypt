@@ -56,7 +56,7 @@ end
 
 function api:_checkKeyAge()
   if self.lastKeyExchange + self.maxKeyAge < os.epoch("utc") then
-    -- more than 10 minutes passed since we last exchanged keys, so do it again
+    -- too much time passed since we last exchanged keys, so do it again
     self:keyExchange()
   end
 end
