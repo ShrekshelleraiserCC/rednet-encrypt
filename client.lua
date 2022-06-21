@@ -121,7 +121,7 @@ function api:sendReq(message)
       end
       -- If still continuing execution at this point it's errored and we need to resend the message
       send = true
-    elseif response.type == common.messageTypes.error and id == self.hostId and errCount < 2 then
+    elseif response.type == common.messageTypes.error and id == self.hostId and errCount < 2 and common.valueInTable(common.error, response.message) then
       lastErrReason = response.message
       errCount = errCount + 1
       if response.message == common.error.key_failure then
