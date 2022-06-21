@@ -20,7 +20,7 @@ api.__index = api
 --- Perform the key exchange, called automatically
 -- @return true or throws an error
 function api:keyExchange()
-  self.hostId = rednet.lookup(self.protocol)
+  self.hostId = self.hostId or rednet.lookup(self.protocol, self.hostname)
   if type(self.hostId) == "nil" then
     error("No host for "..self.protocol.." found.")
   elseif type(self.hostId) == "table" then
@@ -145,12 +145,16 @@ end
 
 --- Create a new client object.
 -- @tparam string protocol
+-- @tparam table p parameters to apply to client before performing first key exchange
 -- @treturn table Client object
-function api.new(protocol)
+function api.new(protocol, p)
   local o = {}
   o.private, o.public = ecc.keypair()
   setmetatable(o, api)
   o.protocol = protocol
+  for k,v in pairs(p) do
+    o[k] = v
+  end
   o:keyExchange()
   return o
 end
