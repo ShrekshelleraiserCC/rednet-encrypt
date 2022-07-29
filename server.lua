@@ -8,6 +8,14 @@ local expect = require("cc.expect")
 assert(modem, "Modem not found.")
 rednet.open(peripheral.getName(modem))
 
+settings.define("rne.enable_screen", {
+  description = "Enable logging information to the screen.",
+  default = true,
+  type = "boolean"
+})
+
+local doLogging = settings.get("rne.enable_screen")
+
 --- Default server settings
 -- @table api
 local api = {
@@ -80,25 +88,33 @@ end
 
 --- Start the server
 function api:start()
-  local width, height = term.getSize()
-  topBar = window.create(term.current(), 1, 1, width, 1)
-  topBar.setBackgroundColor(colors.blue)
-  topBar.setTextColor(colors.white)
-  bottomArea = window.create(term.current(), 1, 2, width, height-1)
-  term.redirect(bottomArea)
-  print("Server started for "..self.protocol)
+  if doLogging then
+    local width, height = term.getSize()
+    topBar = window.create(term.current(), 1, 1, width, 1)
+    topBar.setBackgroundColor(colors.blue)
+    topBar.setTextColor(colors.white)
+    bottomArea = window.create(term.current(), 1, 2, width, height-1)
+    term.redirect(bottomArea)
+    print("Server started for "..self.protocol)
+  end
   while true do
-    topBar.setCursorPos(1,1)
-    topBar.clear()
-    topBar.write(string.format("%s@%s\127C%2u", self.protocol, self.hostname, getLengthOfArbritaryT(self.activeConnections)))
+    if doLogging then
+      topBar.setCursorPos(1,1)
+      topBar.clear()
+      topBar.write(string.format("%s@%s\127C%2u", self.protocol, self.hostname, getLengthOfArbritaryT(self.activeConnections)))
+    end
     local id, response, protocol = rednet.receive(self.protocol, self.maxConnectionAge/1000)
     if protocol == self.protocol and type(response) == "table" then
-      print(string.format("%u Message from %u",os.epoch("utc"), id))
+      if doLogging then
+        print(string.format("%u Message from %u",os.epoch("utc"), id))
+      end
       if response.type == common.messageTypes.key_exchange then
         -- peform key exchange
-        term.setTextColor(colors.lime)
-        print("  Key exchange")
-        term.setTextColor(colors.white)
+        if doLogging then
+          term.setTextColor(colors.lime)
+          print("  Key exchange")
+          term.setTextColor(colors.white)
+        end
         if ecc.verify(response.message, response.message, response.sig) then
           self.activeConnections[id] = {
             id = id,
@@ -109,7 +125,9 @@ function api:start()
           }
           self:sendMessage(id, common.messageTypes.key_exchange, self.public)
         else
-          print("  Invalid signature")
+          if doLogging then
+            print("  Invalid signature")
+          end
           self:sendMessage(id, common.messageTypes.error, common.error.sig_invalid)
         end
       else
@@ -122,17 +140,19 @@ function api:start()
             local currentTime = os.epoch("utc")
             local messageTooOld = (decryptT.epoch == nil) or (decryptT.epoch + self.maxMessageAge < currentTime)
             local uuidAlreadySeen = common.valueInTable(self.activeConnections[id].uuids, decryptT.uuid) or (decryptT.uuid == nil)
-            if type(decryptT.epoch)=="number" then print(string.format("  Message is %ums old", currentTime - decryptT.epoch)) end
+            if type(decryptT.epoch)=="number" and doLogging then print(string.format("  Message is %ums old", currentTime - decryptT.epoch)) end
             if messageTooOld or uuidAlreadySeen then
               -- This uuid has already been sent in a message, or this message doesn't contain a uuid
               -- Or the epoch in the message is too old
-              term.setTextColor(colors.yellow)
-              if messageTooOld then
-                print("  Message too old.")
-              else
-                print("  Message contains duplicate uuid.")
+              if doLogging then
+                term.setTextColor(colors.yellow)
+                if messageTooOld then
+                  print("  Message too old.")
+                else
+                  print("  Message contains duplicate uuid.")
+                end
+                term.setTextColor(colors.white)
               end
-              term.setTextColor(colors.white)
               -- self.activeConnections[id] = nil
               -- self:sendMessage(id, common.messageTypes.error, common.error.key_failure) 
               -- invalidating the connection results in allowing duplicate messages, ignoring is probably better behavior
@@ -142,12 +162,14 @@ function api:start()
               end
               self.activeConnections[id].uuids[#self.activeConnections[id].uuids+1] = decryptT.uuid
               self.activeConnections[id].lastMessage = currentTime
-              term.setTextColor(colors.green)
-              print("  Valid message, passing to msgHandle")
-              term.setTextColor(colors.white)
+              if doLogging then
+                term.setTextColor(colors.green)
+                print("  Valid message, passing to msgHandle")
+                term.setTextColor(colors.white)
+              end
               local err
               status, err = pcall(self.msgHandle, self, id, decryptT)
-              if not status then
+              if not status and doLogging then
                 term.setTextColor(colors.red)
                 print("  !!msgHandle threw an error:")
                 print(err)
@@ -158,19 +180,23 @@ function api:start()
             -- The signiture is correct, but the decrypted message is not a deserializable string
             -- Either our common encryption key is incorrect, or someone attempted to send a non-table item
             -- Regardless this is not supported and we'll just send a key error back
-            term.setTextColor(colors.red)
-            print("  Invalid key")
-            term.setTextColor(colors.white)
+            if doLogging then
+              term.setTextColor(colors.red)
+              print("  Invalid key")
+              term.setTextColor(colors.white)
+            end
             self:sendMessage(id, common.messageTypes.error, common.error.key_failure)
           else
-            term.setTextColor(colors.red)
-            print("  Invalid signature")
-            term.setTextColor(colors.white)
+            if doLogging then
+              term.setTextColor(colors.red)
+              print("  Invalid signature")
+              term.setTextColor(colors.white)
+            end
             self:sendMessage(id, common.messageTypes.error, common.error.sig_invalid)
           end
         end
       end
-    else
+    elseif doLogging then
       print("No messages recieved.. Clearing cache..")
     end
     -- Done processing request
