@@ -4,7 +4,7 @@
 local ecc = require("ecc")
 local common = require("common")
 local modem = peripheral.find("modem")
-local expect = require("cc.expect")
+local expect = require("cc.expect").expect
 assert(modem, "Modem not found.")
 rednet.open(peripheral.getName(modem))
 
